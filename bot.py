@@ -69,6 +69,8 @@ def parse_start_sh(path):
         "server-name": None,
         "server-version": None,
         "server-type": None,
+        "server-port": None,
+        "server-ip": None,
         "visible-to-bot": "false"
     }
     if not os.path.exists(path):
@@ -81,6 +83,10 @@ def parse_start_sh(path):
                 result["server-version"] = m.group(1).strip()
             elif m := re.match(r"#\s*server-type:\s*(.+)", line):
                 result["server-type"] = m.group(1).strip()
+            elif m := re.match(r"#\s*server-port:\s*(.+)", line):
+                result["server-port"] = m.group(1).strip()
+            elif m := re.match(r"#\s*server-ip:\s*(.+)", line):
+                result["server-ip"] = m.group(1).strip()
             elif m := re.match(r"#\s*visible-to-bot:\s*(.+)", line):
                 result["visible-to-bot"] = m.group(1).strip().lower()
     return result
@@ -124,8 +130,9 @@ def generate_mc_summary():
         type_ = start_meta.get("server-type") or "unknown"
 
         prop_path = os.path.join(server_path, "server.properties")
-        port = parse_properties(prop_path) or "????"
-        domain = f"{DOMAIN_BASE}:{port}"
+        port = start_meta.get("server-port") or parse_properties(prop_path) or "????"
+        ip = start_meta.get("server-ip") or DOMAIN_BASE
+        domain = f"{ip}:{port}"
 
         ops = parse_json_names(os.path.join(server_path, "ops.json"))
         whitelist = parse_json_names(os.path.join(server_path, "whitelist.json"))
