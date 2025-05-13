@@ -6,6 +6,7 @@ import json
 import os
 from dotenv import load_dotenv
 import re
+from shared.server_data import MinecraftServer, MinecraftServerData
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
@@ -25,6 +26,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+bot.shared_data = MinecraftServerData(MCROOT, DOMAIN_BASE)
 # for testing purposes
 GUILD_ID = os.getenv('GUILD_ID')
 
@@ -60,6 +62,9 @@ async def load_extensions():
 async def main():
     async with bot:
         await load_extensions()
+        # minecraft_server_data = MinecraftServerData(MCROOT, DOMAIN_BASE)
+        # print(minecraft_server_data.get_server_list())
+        # print(minecraft_server_data.generate_mc_summary())
         await bot.start(TOKEN)
 
 if __name__ == '__main__':
