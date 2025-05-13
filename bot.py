@@ -24,10 +24,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
-
-message_to_edit = None
-previous_content = None
-
 # for testing purposes
 GUILD_ID = os.getenv('GUILD_ID')
 
@@ -38,7 +34,20 @@ async def on_ready():
         status=discord.Status.idle,
         activity=discord.Activity(type=discord.ActivityType.watching, name="伺服器們")
     )
+    # await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+    # bot.tree.clear_commands(guild=discord.Object(id=GUILD_ID))
+    slash = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+    print(f"Synced {len(slash)} commands to the guild.")
     print('Bot is ready!')
+
+@bot.tree.command(name="reload", description="Reload all cogs", guild=discord.Object(id=GUILD_ID))
+async def reload_cogs(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py'):
+            await bot.reload_extension(f'cogs.{filename[:-3]}')
+            print(f'Reloaded extension: {filename[:-3]}')
+    await interaction.followup.send("All cogs reloaded successfully!", ephemeral=True)
 
 async def load_extensions():
     for filename in os.listdir('./cogs'):
