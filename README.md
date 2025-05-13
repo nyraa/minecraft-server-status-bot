@@ -12,6 +12,7 @@
 - Command to start/shutdown server, RCON
 
 ## Folder structure
+`server1`, `server2`, `server3` will be your server-id.
 ```
 root/
 ├── server1/
