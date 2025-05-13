@@ -185,7 +185,7 @@ class MinecraftServerData:
             autostart = server.autostart
 
             summary.append(f"""\
-### {name}（{version} {server_type}）{"❌" if server.no_rcon else ("🟢" if server.online else "🔴")}
+### {"❌" if server.no_rcon else ("🟢" if server.online else "🔴")} {name}（{version} {server_type}）
 - ID: `{server_id}`
 - IP: `{domain}`
 - OPs: {', '.join([f'`{op}`' for op in ops]) if ops else '_None_'}
