@@ -1,0 +1,15 @@
+[Unit]
+Description=Minecraft Server Status Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/minecraft-server-status-bot
+ExecStart=/bin/bash ./start.sh
+Restart=always
+RestartSec=5
+User=your_username
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
