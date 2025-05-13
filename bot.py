@@ -31,6 +31,7 @@ previous_content = None
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name} - {bot.user.id}')
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="伺服器們"))
     print('Bot is ready!')
 
     # load message id
