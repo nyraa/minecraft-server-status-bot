@@ -143,12 +143,15 @@ def generate_mc_summary():
 ### {name}（{version} {type_}）
 - ID: `{server_id}`
 - IP: `{domain}`
-- OPs: {', '.join(ops) if ops else '_None_'}
-- Whitelist: {', '.join(whitelist) if whitelist else '_None_'}
-- Auto start: {"Yes" if autostart else "No"}""")
+- OPs: {', '.join([f'`{op}`' for op in ops]) if ops else '_None_'}
+- 白名單: {', '.join([f'`{player}`' for player in whitelist]) if whitelist else '_None_'}
+- 開機自動啟動: {"度" if autostart else "否"}""")
 
     if not summary:
         return "No visible servers found."
-    return "# Minecraft Servers\n\n" + "\n\n".join(summary)
+    return """
+# 伺服器清單
+如果有沒有啥異狀或是要op或白名單就去主頻道tag服主
+""" + "\n\n".join(summary)
 
 bot.run(TOKEN)
