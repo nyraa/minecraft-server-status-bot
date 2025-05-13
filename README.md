@@ -65,3 +65,14 @@ This command sends `command` to `$server-id` via RCON.
 Reload Discord bot cogs, for development.
 
 The commands above requires Discord Admin premission to issue it.
+
+## Setup
+
+### Environment variable
+Environment variable is place at `.env` file, following keys are required:
+```
+DISCORD_BOT_TOKEN=your token
+CHANNEL_ID=your channel to send server status
+MCSERVER_DOMAIN=your server domain
+MCSERVER_PATH=your servers root directory
+GUILD_ID=your discord server id, for faster command sync if you only need this bot serve one server
