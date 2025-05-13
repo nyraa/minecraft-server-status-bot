@@ -100,7 +100,10 @@ class MinecraftServerData:
         self.mcroot = mcroot
         self.domain_base = domain_base
         self.servers = {}
-        self._scan_servers()
+        self._scan_servers.start()
+
+    def __del__(self):
+        self._scan_servers.stop()
         
     def get_server_by_id(self, server_id: str) -> MinecraftServer:
         # return a server object by ID, ignore unvisible servers
@@ -150,10 +153,10 @@ class MinecraftServerData:
         return """
 # 伺服器清單
 如果有沒有啥異狀或是要op或白名單就去主頻道tag服主
-""" + "\n\n".join(summary) # + "\n\n" + f"最後更新: <t:{int(time.time())}:R>"
+""" + "\n\n".join(summary) + "\n\n" + f"最後更新: <t:{int(time.time())}:R>"
 
-
-    def _scan_servers(self):
+    @tasks.loop(seconds=10)
+    async def _scan_servers(self):
         for server_id in os.listdir(self.mcroot):
             existed_server = self.servers.get(server_id)
             if existed_server:
