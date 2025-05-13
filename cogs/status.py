@@ -9,7 +9,7 @@ from shared.server_data import MinecraftServer, MinecraftServerData
 class MCServerStatus(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.shared_data = bot.shared_data
+        self.shared_data: MinecraftServerData = bot.shared_data
         self.message_to_edit = None
         self.previous_content = None
         self.channel_id = int(os.getenv('CHANNEL_ID'))

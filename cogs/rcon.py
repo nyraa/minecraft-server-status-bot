@@ -2,13 +2,14 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import os
+import subprocess
 from shared.server_data import MinecraftServer, MinecraftServerData
 
 GUILD_ID = os.getenv('GUILD_ID')
 class RCON(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.shared_data = bot.shared_data
+        self.shared_data: MinecraftServerData = bot.shared_data
         self.mcroot = os.getenv('MCSERVER_PATH')
     
     @app_commands.command(name="rcon", description="Send a command to the Minecraft server")
@@ -31,22 +32,47 @@ class RCON(commands.Cog):
     @app_commands.command(name="up", description="Start the Minecraft server")
     @app_commands.checks.has_permissions(administrator=True)
     async def up(self, interaction: discord.Interaction, server_id: str):
+        print(f"Starting server `{server_id}`")
         await interaction.response.defer(thinking=True)
         
-        # Here you would implement the logic to start the server
-        # For now, we'll just simulate a response
-        response = f"Server `{server_id}` started."
+        # check if server id exists
+        server = self.shared_data.get_server_by_id(server_id)
+        if not server:
+            await interaction.followup.send(f"Server `{server_id}` not found.", ephemeral=True)
+            return
+        # Run the server start script
+        script_path = os.path.expanduser("~/minecraft-launch.sh")
+        process = subprocess.run([script_path, server_id], capture_output=True, text=True)
+        
+        # Handle the return code
+        if process.returncode == 0:
+            response = f"Server `{server_id}` started successfully."
+        elif process.returncode == 1:
+            response = f"Server `{server_id}` is already running."
+        elif process.returncode == 2:
+            response = f"Server `{server_id}` not found."
+        else:
+            response = f"Failed to start server `{server_id}`. Error: {process.stderr}"
         await interaction.followup.send(response)
     
     @app_commands.command(name="down", description="Stop the Minecraft server")
     @app_commands.checks.has_permissions(administrator=True)
     async def down(self, interaction: discord.Interaction, server_id: str):
         await interaction.response.defer(thinking=True)
+        print(f"Stopping server `{server_id}`")
+        # check if server id exists
+        server = self.shared_data.get_server_by_id(server_id)
+        if not server:
+            await interaction.followup.send(f"Server `{server_id}` not found.", ephemeral=True)
+            return
         
-        # Here you would implement the logic to stop the server
-        # For now, we'll just simulate a response
-        response = f"Server `{server_id}` stopped."
-        await interaction.followup.send(response)
+        # Stop the server via RCON
+        try:
+            rcon_response = server.run_rcon_command("stop")
+        except ValueError as e:
+            await interaction.followup.send(f"Error: {e}", ephemeral=True)
+            return
+        await interaction.followup.send(rcon_response)
     
     
     @up.autocomplete("server_id")
