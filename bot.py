@@ -42,7 +42,7 @@ async def on_ready():
 
 @bot.tree.command(name="reload", description="Reload all cogs", guild=discord.Object(id=GUILD_ID))
 async def reload_cogs(interaction: discord.Interaction):
-    await interaction.response.defer(thinking=True)
+    await interaction.response.defer(thinking=True, ephemeral=True)
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
             await bot.reload_extension(f'cogs.{filename[:-3]}')
