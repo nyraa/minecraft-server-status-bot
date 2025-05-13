@@ -7,7 +7,6 @@ from mcrcon import MCRcon
 
 class MinecraftServer:
     def __init__(self, server_id: str, mcroot: str, domain_base: str):
-        self.valid = False
         self.visible = False
         self.properties = {}
         self.ops = []
