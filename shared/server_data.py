@@ -16,6 +16,17 @@ class MinecraftServer:
         self.server_path = os.path.join(mcroot, server_id)
         self.domain_base = domain_base
         self.autostart = False
+        self.mrc = None
+        self.max_players = 0
+        self.current_players = 0
+        self.online_players = []
+        self.online = False
+        self.no_rcon = True
+    
+    def __del__(self):
+        if self.mrc:
+            self.mrc.disconnect()
+            self.mrc = None
 
     def load_data(self) -> bool:
         self.start_meta = self._parse_start_sh(os.path.join(self.server_path, "start.sh"))
@@ -26,8 +37,42 @@ class MinecraftServer:
             return False
         self.ops = self._parse_json_names(os.path.join(self.server_path, "ops.json"))
         self.whitelist = self._parse_json_names(os.path.join(self.server_path, "whitelist.json"))
-        self.visible = self.start_meta.get("visible-to-bot", "false") == "true"
         self.autostart = os.path.exists(os.path.join(self.server_path, "auto-start.sh"))
+        self.visible = self.start_meta.get("visible-to-bot", "false") == "true"
+        if self.visible:
+            if self.properties.get("enable-rcon") == "true" and self.properties.get("rcon.port") and self.properties.get("rcon.password"):
+                self.no_rcon = False
+                # RCON is enabled, try to connect
+                try:
+                    if not self.mrc:
+                        self.mrc = MCRcon('localhost', port=int(self.properties.get("rcon.port")), password=self.properties.get("rcon.password", ""))
+                        self.mrc.connect()
+                    if self.mrc:
+                        # Connected to RCON, server is online
+                        self.online = True
+                        rcon_response = self.mrc.command("list")
+                        if rcon_response:
+                            match = re.search(r"(\d+).*?(\d+).*\:(.*)", rcon_response)
+                            if match:
+                                # Parse the response successfully
+                                self.current_players = int(match.group(1))
+                                self.max_players = int(match.group(2))
+                                self.online_players = [player for raw in match.group(3).split(",") if (player := raw.strip())]
+
+                except ConnectionRefusedError:
+                    # RCON on in properties but connection refused, not started
+                    self.mrc = None
+                    self.online = False
+                except Exception as e:
+                    # RCON on in properties, unknown error
+                    print(f"Error connecting to RCON for server `{self.server_id}`: {type(e).__name__} - {e}")
+                    self.mrc = None
+                    self.online = False
+            else:
+                # RCON not set up in properties
+                self.mrc = None
+                self.no_rcon = True
+                self.online = False
         return True
 
     def run_rcon_command(self, command: str):
@@ -140,11 +185,17 @@ class MinecraftServerData:
             autostart = server.autostart
 
             summary.append(f"""\
-### {name}（{version} {server_type}）
+### {name}（{version} {server_type}）{"❌" if server.no_rcon else ("🟢" if server.online else "🔴")}
 - ID: `{server_id}`
 - IP: `{domain}`
 - OPs: {', '.join([f'`{op}`' for op in ops]) if ops else '_None_'}
 - 白名單: {', '.join([f'`{player}`' for player in whitelist]) if whitelist else '_None_'}
+""" + 
+(f"""\
+- 線上玩家: {', '.join([f'`{player}`' for player in server.online_players]) if server.online_players else '_None_'}
+- 玩家數: {server.current_players}/{server.max_players}
+""" if server.online else "") + 
+f"""\
 - 開機自動啟動: {"度" if autostart else "否"}""")
 
         if not summary:
