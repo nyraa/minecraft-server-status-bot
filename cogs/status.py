@@ -26,7 +26,7 @@ class MCServerStatus(commands.Cog):
         channel = self.bot.get_channel(self.channel_id)
         new_content = self.shared_data.generate_mc_summary()
         if new_content != self.previous_content:
-            print("Content changed, updating message.")
+            # print("Content changed, updating message.")
             self.previous_content = new_content
             try:
                 if not self.message_to_edit:
@@ -41,7 +41,6 @@ class MCServerStatus(commands.Cog):
                 self.message_to_edit = await channel.send(new_content)
                 with open('message_id.json', 'w') as f:
                     json.dump({'message_id': self.message_to_edit.id}, f)
-        print("No changes detected, not updating message.")
 
 async def setup(bot):
     await bot.add_cog(MCServerStatus(bot))
