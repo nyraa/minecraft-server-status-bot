@@ -11,6 +11,7 @@ class RCON(commands.Cog):
         self.mcroot = os.getenv('MCSERVER_PATH')
     
     @app_commands.command(name="rcon", description="Send a command to the Minecraft server")
+    @app_commands.checks.has_permissions(administrator=True)
     async def rcon(self, interaction: discord.Interaction, server: str, command: str):
         await interaction.response.defer(thinking=True)
         server_path = os.path.join(self.mcroot, server)
@@ -34,6 +35,7 @@ class RCON(commands.Cog):
             await interaction.followup.send("No response from RCON.", ephemeral=True)
 
     @app_commands.command(name="up", description="Start the Minecraft server")
+    @app_commands.checks.has_permissions(administrator=True)
     async def up(self, interaction: discord.Interaction, server: str):
         await interaction.response.defer(thinking=True)
         server_path = os.path.join(self.mcroot, server)
@@ -50,6 +52,7 @@ class RCON(commands.Cog):
         await interaction.followup.send(response)
     
     @app_commands.command(name="down", description="Stop the Minecraft server")
+    @app_commands.checks.has_permissions(administrator=True)
     async def down(self, interaction: discord.Interaction, server: str):
         await interaction.response.defer(thinking=True)
         server_path = os.path.join(self.mcroot, server)
@@ -69,6 +72,7 @@ class RCON(commands.Cog):
     @up.autocomplete("server")
     @down.autocomplete("server")
     @rcon.autocomplete("server")
+    @app_commands.checks.has_permissions(administrator=True)
     async def server_autocomplete(self, interaction: discord.Interaction, current: str):
         server_dirs = [d for d in os.listdir(self.mcroot) if os.path.isdir(os.path.join(self.mcroot, d))]
         return [app_commands.Choice(name=server, value=server) for server in server_dirs if current.lower() in server.lower()]
