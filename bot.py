@@ -1,5 +1,6 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
+from discord import app_commands
 import asyncio
 import json
 import os

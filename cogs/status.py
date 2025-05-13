@@ -133,4 +133,4 @@ class MCServerStatus(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(MCServerStatus(bot))
-    
+    print("MCServerStatus cog loaded.")
