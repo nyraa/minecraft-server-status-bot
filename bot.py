@@ -36,20 +36,6 @@ async def on_ready():
         activity=discord.Activity(type=discord.ActivityType.watching, name="伺服器們")
     )
     print('Bot is ready!')
-
-    # load message id
-    try:
-        with open('message_id.json', 'r') as f:
-            data = json.load(f)
-            message_id = data.get('message_id')
-        global message_to_edit
-        message_to_edit = await bot.get_channel(CHANNEL_ID).fetch_message(message_id)
-    except (FileNotFoundError, discord.NotFound):
-        print("Message not found or file not found. Sending a new message.")
-        channel = bot.get_channel(CHANNEL_ID)
-        message_to_edit = await channel.send("Server status will be updated here.")
-        with open('message_id.json', 'w') as f:
-            json.dump({'message_id': message_to_edit.id}, f)
     check_for_updates.start()
 
 @tasks.loop(seconds=10)
@@ -60,12 +46,20 @@ async def check_for_updates():
     if new_content != previous_content:
         print("Content changed, updating message.")
         previous_content = new_content
-        if message_to_edit:
+        try:
+            if not message_to_edit:
+                with open('message_id.json', 'r') as f:
+                    data = json.load(f)
+                    message_id = data.get('message_id')
+                    if message_id:
+                        message_to_edit = await channel.fetch_message(message_id)
+            # may raise discord.NotFound if the message is deleted
             await message_to_edit.edit(content=new_content)
-        else:
+        except (FileNotFoundError, discord.NotFound):
             message_to_edit = await channel.send(new_content)
             with open('message_id.json', 'w') as f:
                 json.dump({'message_id': message_to_edit.id}, f)
+            
 
 
 def parse_start_sh(path):
