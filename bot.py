@@ -42,6 +42,7 @@ async def on_ready():
     print('Bot is ready!')
 
 @bot.tree.command(name="reload", description="Reload all cogs", guild=discord.Object(id=GUILD_ID))
+@app_commands.checks.has_permissions(administrator=True)
 async def reload_cogs(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True, ephemeral=True)
     for filename in os.listdir('./cogs'):

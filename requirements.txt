@@ -5,6 +5,7 @@ attrs==25.3.0
 discord-py==2.5.2
 frozenlist==1.6.0
 idna==3.10
+mcrcon==0.7.0
 multidict==6.4.3
 propcache==0.3.1
 python-dotenv==1.1.0
