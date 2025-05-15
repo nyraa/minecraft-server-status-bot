@@ -12,6 +12,7 @@ class MinecraftServer:
         self.ops = []
         self.whitelist = []
         self.start_meta = {}
+        self.server_type = None
         self.server_id = server_id
         self.server_path = os.path.join(mcroot, server_id)
         self.domain_base = domain_base
@@ -22,6 +23,7 @@ class MinecraftServer:
         self.online_players = []
         self.online = False
         self.no_rcon = True
+        self.tps = []   # 1m, 5m, 15m
     
     def __del__(self):
         if self.mrc:
@@ -32,6 +34,7 @@ class MinecraftServer:
         self.start_meta = self._parse_start_sh(os.path.join(self.server_path, "start.sh"))
         if not self.start_meta:
             return False
+        self.server_type = self.start_meta.get("server-type")
         self.properties = self._parse_properties(os.path.join(self.server_path, "server.properties"))
         if not self.properties:
             return False
@@ -50,6 +53,8 @@ class MinecraftServer:
                     if self.mrc:
                         # Connected to RCON, server is online
                         self.online = True
+
+                        # Get online players
                         rcon_response = self.mrc.command("list")
                         if rcon_response:
                             match = re.search(r"(\d+).*?(\d+).*\:(.*)", rcon_response)
@@ -58,6 +63,15 @@ class MinecraftServer:
                                 self.current_players = int(match.group(1))
                                 self.max_players = int(match.group(2))
                                 self.online_players = [player for raw in match.group(3).split(",") if (player := raw.strip())]
+                        
+                        # Get TPS
+                        if self.server_type in ["paper", "spigot", "bukkit"]:
+                            tps_response = self.mrc.command("tps")
+                            if tps_response:
+                                match = re.search(r"(\d+\.\d+)[^\d]*(\d+\.\d+)[^\d]*(\d+\.\d+)", tps_response)
+                                if match:
+                                    # Parse the response successfully
+                                    self.tps = [float(match.group(1)), float(match.group(2)), float(match.group(3))]
 
                 except ConnectionRefusedError:
                     # RCON on in properties but connection refused, not started
@@ -94,7 +108,7 @@ class MinecraftServer:
         result = {
             "server-name": None,
             "server-version": None,
-            "server-type": None,
+            "server-type": "Unknown",
             "server-port": None,
             "server-ip": None,
             "visible-to-bot": "false"
@@ -195,6 +209,9 @@ class MinecraftServerData:
 - 線上玩家: {', '.join([f'`{player}`' for player in server.online_players]) if server.online_players else '_None_'}
 - 玩家數: {server.current_players}/{server.max_players}
 """ if server.online else "") + 
+(f"""\
+- TPS: {", ".join(map(str, server.tps))}
+""" if server.online and len(server.tps) > 0 else "") +
 f"""\
 - 開機自動啟動: {"度" if autostart else "否"}""")
 
