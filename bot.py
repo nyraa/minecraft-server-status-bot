@@ -52,6 +52,11 @@ async def reload_cogs(interaction: discord.Interaction):
             print(f'Reloaded extension: {filename[:-3]}')
     await interaction.followup.send("All cogs reloaded successfully!", ephemeral=True)
 
+@bot.tree.command(name="hej", description="問問小精靈在不在線上", guild=discord.Object(id=GUILD_ID))
+async def hej(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+    await interaction.followup.send("燈在這", ephemeral=True)
+
 async def load_extensions():
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
