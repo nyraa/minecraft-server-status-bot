@@ -5,6 +5,22 @@ import os
 import subprocess
 from shared.server_data import MinecraftServer, MinecraftServerData
 
+def is_admin_or_role(role_list: list[str]):
+    async def check(interaction: discord.Interaction) -> bool:
+        # Check if the user is an administrator
+        if interaction.user.guild_permissions.administrator:
+            return True
+
+        # Check if the user has any of the specified roles
+        for role in interaction.user.roles:
+            if role.name in role_list:
+                return True
+
+        # If neither condition is met, deny access
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return False
+    return app_commands.check(check)
+
 GUILD_ID = os.getenv('GUILD_ID')
 class RCON(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -13,7 +29,7 @@ class RCON(commands.Cog):
         self.mcroot = os.getenv('MCSERVER_PATH')
     
     @app_commands.command(name="rcon", description="Send a command to the Minecraft server")
-    @app_commands.checks.has_permissions(administrator=True)
+    @is_admin_or_role(["RCON"])
     async def rcon(self, interaction: discord.Interaction, server_id: str, command: str):
         await interaction.response.defer(thinking=True)
         server = self.shared_data.get_server_by_id(server_id)
@@ -78,7 +94,7 @@ class RCON(commands.Cog):
     @up.autocomplete("server_id")
     @down.autocomplete("server_id")
     @rcon.autocomplete("server_id")
-    @app_commands.checks.has_permissions(administrator=True)
+    @is_admin_or_role(["RCON"])
     async def server_autocomplete(self, interaction: discord.Interaction, current: str):
         server_dirs = self.shared_data.get_server_list()
         return [app_commands.Choice(name=server, value=server) for server in server_dirs if current.lower() in server.lower()]
