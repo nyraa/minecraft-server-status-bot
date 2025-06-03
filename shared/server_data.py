@@ -217,9 +217,9 @@ f"""\
 
         if not summary:
             return "No visible servers found."
-        return """
+        return f"""
 # 伺服器清單
-如果有沒有啥異狀或是要op或白名單就去主頻道tag服主
+{os.getenv('ANNOUNCEMENT')}
 """ + "\n\n".join(summary) + "\n\n" + f"最後更新: <t:{int(time.time())}:R>"
 
     @tasks.loop(seconds=10)
